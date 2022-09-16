@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,8 +19,8 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
+	"github.com/pkg/errors"
 	"image"
 	"image/gif"
 	"image/jpeg"
@@ -580,6 +580,9 @@ func main1() {
 }
 
 func main() {
+	fmt.Println(errors.New("this is a error"))
+	err := errors.New("this is a error")
+	fmt.Println(errors.WithStack(err))
 	//defer func() {
 	//	if err := recover();err != nil {
 	//		fmt.Println("++++")
@@ -597,15 +600,15 @@ func main() {
 	//		return "defer panic"
 	//	})
 	//}()
-	defer func() {
-		fmt.Println(111)
-		panic("err111")
-	}()
-	defer func() {
-		fmt.Println(222)
-		panic("err222")
-	}()
-	panic("panic")
+	//defer func() {
+	//	fmt.Println(111)
+	//	panic("err111")
+	//}()
+	//defer func() {
+	//	fmt.Println(222)
+	//	panic("err222")
+	//}()
+	//panic("panic")
 	//a, b := test12(100)
 	//a()
 	//b()

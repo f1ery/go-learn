@@ -1,0 +1,22 @@
+mysql:
+# 本地开发连测试环境
+  book:
+    master:
+      dsn: "free_testuser:fr5Bo7kTetuK@tcp(rm-uf6b86e0rc52d5k9iqo.mysql.rds.aliyuncs.com:3306)/qimao_free?charset=utf8"
+    slaves:
+      - dsn: "free_testuser:fr5Bo7kTetuK@tcp(rm-uf6b86e0rc52d5k9iqo.mysql.rds.aliyuncs.com:3306)/qimao_free?charset=utf8"
+  free_log_bc:
+    master:
+      dsn: "free_testuser:fr5Bo7kTetuK@tcp(rm-uf6b86e0rc52d5k9iqo.mysql.rds.aliyuncs.com:3306)/free_log_bc?charset=utf8"
+    slaves:
+      - dsn: "free_testuser:fr5Bo7kTetuK@tcp(rm-uf6b86e0rc52d5k9iqo.mysql.rds.aliyuncs.com:3306)/free_log_bc?charset=utf8"
+  free_log_all:
+    master:
+      dsn: "free_testuser:fr5Bo7kTetuK@tcp(rm-uf6b86e0rc52d5k9iqo.mysql.rds.aliyuncs.com:3306)/free_log?charset=utf8"
+    slaves:
+      - dsn: "free_testuser:fr5Bo7kTetuK@tcp(rm-uf6b86e0rc52d5k9iqo.mysql.rds.aliyuncs.com:3306)/free_log?charset=utf8"
+  qimao_free:
+    master:
+      dsn: "free_testuser:fr5Bo7kTetuK@tcp(rm-uf6b86e0rc52d5k9iqo.mysql.rds.aliyuncs.com:3306)/qimao_free?charset=utf8"
+    slaves:
+      - dsn: "free_testuser:fr5Bo7kTetuK@tcp(rm-uf6b86e0rc52d5k9iqo.mysql.rds.aliyuncs.com:3306)/qimao_free?charset=utf8"
