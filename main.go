@@ -21,6 +21,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/pkg/errors"
+	client2 "go-learn/internal/client"
+	"go-learn/internal/conf"
+	model2 "go-learn/internal/model"
 	"image"
 	"image/gif"
 	"image/jpeg"
@@ -579,10 +582,22 @@ func main1() {
 	panic("panic")
 }
 
+func init() {
+	conf.InitConfig()
+}
+
 func main() {
-	fmt.Println(errors.New("this is a error"))
-	err := errors.New("this is a error")
-	fmt.Println(errors.WithStack(err))
+	var book model2.Book
+	mysqlClient := client2.NewQimaoFreeMysqlClient()
+	_, err := mysqlClient.Table("book").And("id = ?", 100781).Get(&book)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("%+v\n", book)
+	fmt.Printf("%#v\n", book)
+	//fmt.Println(errors.New("this is a error"))
+	//err := errors.New("this is a error")
+	//fmt.Println(errors.WithStack(err))
 	//defer func() {
 	//	if err := recover();err != nil {
 	//		fmt.Println("++++")
