@@ -1,0 +1,42 @@
+# 步骤1：安装 go get xorm.io/reverse
+# 步骤2：修改上面文件中的 include_tables的表
+# 步骤3：执行reverse -f scripts/sql_reverse.yaml
+
+kind: reverse
+name: mydb
+source:
+  database: mysql
+  conn_str: 'free_testuser:fr5Bo7kTetuK@tcp(rm-uf6b86e0rc52d5k9iqo.mysql.rds.aliyuncs.com:3306)/qimao_free?charset=utf8'
+targets:
+  - type: codes
+    language: golang
+    include_tables: # 需要生成的表的结构
+      - baidu_book_change
+    #  exclude_tables: # 排除的表，一般不需要修改，只在include_tables增加增量的表
+    #    - c
+    #  table_mapper: snake # 表明生成格式, 一般不需要修改
+    #  column_mapper: snake # 字段名生成格式， 一般不需要修改
+    multiple_files: true
+    output_dir: ./internal/model/mysql
+    template: |
+      package mysql
+
+      {{$ilen := len .Imports}}
+      {{if gt $ilen 0}}
+      import (
+        {{range .Imports}}"{{.}}"{{end}}
+      )
+      {{end}}
+
+      {{range .Tables}}
+      type {{TableMapper .Name}} struct {
+      {{$table := .}}
+      {{range .ColumnsSeq}}{{$col := $table.GetColumn .}}	{{ColumnMapper $col.Name}}	{{Type $col}} `{{Tag $table $col}}`
+      {{end}}
+      }
+
+      func (m *{{TableMapper .Name}}) TableName() string {
+      	return "{{$table.Name}}"
+      }
+      {{end}}
+    template_path: ./template/goxorm.tmpl # template path for code file, it has higher perior than template field on language

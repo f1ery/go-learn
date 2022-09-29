@@ -20,10 +20,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/gin-gonic/gin"
+	"github.com/go-playground/locales/zh"
+	ut "github.com/go-playground/universal-translator"
+	"github.com/go-playground/validator/v10"
+	zh_translations "github.com/go-playground/validator/v10/translations/zh"
 	"github.com/pkg/errors"
-	client2 "go-learn/internal/client"
+	httpRoute "go-learn/http"
 	"go-learn/internal/conf"
-	model2 "go-learn/internal/model"
 	"image"
 	"image/gif"
 	"image/jpeg"
@@ -584,17 +588,114 @@ func main1() {
 
 func init() {
 	conf.InitConfig()
+	httpRoute.Register()
 }
 
+// ssh jump
+// docker-composer
 func main() {
-	var book model2.Book
-	mysqlClient := client2.NewQimaoFreeMysqlClient()
-	_, err := mysqlClient.Table("book").And("id = ?", 100781).Get(&book)
-	if err != nil {
-		panic(err)
+	http.Handle()
+	gin.DisableConsoleColor()
+	f, _ := os.Create("gin.log")
+	//gin.DefaultWriter = io.MultiWriter(f)
+	gin.DefaultWriter = io.MultiWriter(f, os.Stdout)
+	type User struct {
+		ID     int64  `json:"id" validate:"gt=0"`
+		Name   string `json:"name" validate:"required"`
+		Gender string `json:"gender" validate:"required,oneof=man woman"`
+		Age    uint8  `json:"age" validate:"required,gte=0,lte=130"`
+		Email  string `json:"email" validate:"required,email"`
 	}
-	fmt.Printf("%+v\n", book)
-	fmt.Printf("%#v\n", book)
+
+	user := &User{
+		ID:     1,
+		Name:   "frank",
+		Gender: "man",
+		Age:    180,
+		Email:  "gopher@88.com",
+	}
+	validate := validator.New()
+	err := validate.Struct(user)
+	if err != nil {
+		validationErrors := err.(validator.ValidationErrors)
+		// output: Key: 'User.Age' Error:Field validation for 'Age' failed on the 'lte' tag
+		//fmt.Println(validationErrors)
+		zh1 := zh.New()
+		uni := ut.New(zh1)
+		trans, _ := uni.GetTranslator("zh")
+		_ = zh_translations.RegisterDefaultTranslations(validate, trans)
+		fmt.Println(validationErrors.Translate(trans))
+		return
+	}
+	//url1 := "http://voicecdn.andreader.com/site-990(new)/3467/第327集 压着打\u007F_237e2.mp3"
+	//u, err := url.ParseRequestURI(url1)
+	//fmt.Println(u, err)
+
+	//var signData = "mid=XMQAVIP&pay_type=wxpay&request_time=2022-09-20 13:37:51&subject=开通新媒体快应用年度会员&total_fee=100&trade_no=20220920133751009674&type=Android&user_ip=::1&key=79f5fe86"
+	//var signData = "mid=XMQAVIP&pay_type=wxpay&request_time=2022-09-20 13:37:51&subject=开通新媒体快应用年度会员&total_fee=1&trade_no=20220920133751009674&type=Android&user_ip=::1&key=79f5fe86"
+	//m := fmt.Sprintf("%x", md5.Sum([]byte(signData)))
+	//fmt.Println(m)
+
+	//mysqlClient := client.NewQimaoFreeMysqlClient()
+	//found, err := mysqlClient.Table("book_1").Where("id = ?", 100781).Exist()
+	//found, err := mysqlClient.Table("book_1").Exist(&model.Book{
+	//	Id: 100781,
+	//})
+	//found, err := mysqlClient.SQL("select * from book_1 where id = ?", 100781).Exist()
+	//fmt.Println(found, err)
+	//var bookList []model.Book
+	//bookList := make(map[int]model.Book, 0)
+	//err := mysqlClient.Table("book_1").
+	//	Alias("b").
+	//	And("b.id < ?", 100784).
+	//	Desc("id").Find(&bookList)
+	//cnt, err := mysqlClient.Table("book_1").Where("id < ?", 100784).Count(&model.Book{
+	//	Id: 100781,
+	//})
+	//res, err := mysqlClient.Table("book_1").Where("id < ?", 100784).Sum(model.Book{}, "id")
+	//res, err := mysqlClient.Table("book_1").Where("id < ?", 100784).Sums(model.Book{}, "id", "latest_chapter_id")
+	//if err != nil {
+	//	panic(err)
+	//}
+	////fmt.Printf("%+v\n", bookList)
+	//fmt.Println(res, err)
+
+	//insertData := model.Book{
+	//	Title: "测试书籍哦",
+	//}
+	//row, err := mysqlClient.Table("book_1").Insert(insertData)
+	//fmt.Println(row,err)
+	//updateFunc := func(bean interface{}) {
+	//	fmt.Println("beform", bean)
+	//	time.Sleep(time.Second * 5)
+	//}
+	//
+	//updateData := model.Book{
+	//	Title:    "测试书籍哦22222",
+	//	SourceId: 0,
+	//}
+	//row, err := mysqlClient.Table("book_1").Before(updateFunc).Update(&updateData, model.Book{
+	//	Id: 1660008,
+	//})
+	//row, err := mysqlClient.Table("book_1").ID(1660007).Update(&updateData)
+	//row, err := mysqlClient.Table("book_1").Where("id = ?", 1660007).Update(&updateData)
+	//row, err := mysqlClient.Table("book_1").Where("id = ?", 1660007).Update(map[string]interface{}{
+	//	"title":     "测试书籍哦11122",
+	//	"source_id": 108,
+	//})
+	//row, err := mysqlClient.Table("book_1").ID(1660007).Delete(&model.Book{})
+	//fmt.Println(row, err)
+	//var book model2.Book
+	//_, err := mysqlClient.Table("book_1").
+	//	Cols("id, title").
+	//	//Where("id = ?", 100781).
+	//	Where(builder.Eq{"id":100782}).
+	//	Get(&book)
+	//if err != nil {
+	//	panic(err)
+	//}
+	//fmt.Printf("%+v\n", book)
+	//fmt.Printf("%#v\n", book)
 	//fmt.Println(errors.New("this is a error"))
 	//err := errors.New("this is a error")
 	//fmt.Println(errors.WithStack(err))
