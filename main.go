@@ -20,13 +20,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/go-playground/locales/zh"
-	ut "github.com/go-playground/universal-translator"
-	"github.com/go-playground/validator/v10"
-	zh_translations "github.com/go-playground/validator/v10/translations/zh"
 	"github.com/pkg/errors"
-	httpRoute "go-learn/http"
 	"go-learn/internal/conf"
 	"image"
 	"image/gif"
@@ -40,6 +34,7 @@ import (
 	"net"
 	"net/http"
 	_ "net/http/pprof"
+	"net/rpc"
 	"os"
 	"path"
 	"reflect"
@@ -588,45 +583,105 @@ func main1() {
 
 func init() {
 	conf.InitConfig()
-	httpRoute.Register()
+	//httpRoute.Register()
+}
+
+type Rect struct{}
+
+type Params struct {
+	Width, Height int
+}
+
+func (r *Rect) Area(p Params, ret *int) error {
+	*ret = p.Width * p.Height
+	return nil
+}
+
+func (r *Rect) Perimeter(p Params, ret *int) error {
+	*ret = (p.Height + p.Width) * 2
+	return nil
+}
+
+type MathRpc struct{}
+
+type MathParams struct {
+	A, B int
+}
+
+type MathResp struct {
+	Pro int
+	Quo int
+	Rem int
+}
+
+func (m *MathRpc) Multiply(p MathParams, resp *MathResp) error {
+	resp.Pro = p.A * p.B
+	return nil
+}
+
+func (m *MathRpc) Divide(p MathParams, resp *MathResp) error {
+	if p.B == 0 {
+		return errors.New("除数不能为0")
+	}
+	resp.Quo = p.A / p.B
+	resp.Rem = p.A % p.B
+	return nil
 }
 
 // ssh jump
 // docker-composer
 func main() {
-	http.Handle()
-	gin.DisableConsoleColor()
-	f, _ := os.Create("gin.log")
-	//gin.DefaultWriter = io.MultiWriter(f)
-	gin.DefaultWriter = io.MultiWriter(f, os.Stdout)
-	type User struct {
-		ID     int64  `json:"id" validate:"gt=0"`
-		Name   string `json:"name" validate:"required"`
-		Gender string `json:"gender" validate:"required,oneof=man woman"`
-		Age    uint8  `json:"age" validate:"required,gte=0,lte=130"`
-		Email  string `json:"email" validate:"required,email"`
-	}
+	//rect := new(Rect)
+	////注册一个rect的服务
+	//_ = rpc.Register(rect)
+	////服务处理绑定到http协议上
+	//rpc.HandleHTTP()
+	////监听服务
+	//if err := http.ListenAndServe(":8000", nil); err != nil {
+	//	log.Panicln(err)
+	//	zap.L().Error("err:", zap.Error(err))
+	//}
 
-	user := &User{
-		ID:     1,
-		Name:   "frank",
-		Gender: "man",
-		Age:    180,
-		Email:  "gopher@88.com",
-	}
-	validate := validator.New()
-	err := validate.Struct(user)
+	mathRpc := new(MathRpc)
+	rpc.Register(mathRpc)
+	rpc.HandleHTTP()
+	err := http.ListenAndServe(":8000", nil)
 	if err != nil {
-		validationErrors := err.(validator.ValidationErrors)
-		// output: Key: 'User.Age' Error:Field validation for 'Age' failed on the 'lte' tag
-		//fmt.Println(validationErrors)
-		zh1 := zh.New()
-		uni := ut.New(zh1)
-		trans, _ := uni.GetTranslator("zh")
-		_ = zh_translations.RegisterDefaultTranslations(validate, trans)
-		fmt.Println(validationErrors.Translate(trans))
-		return
+		log.Fatal(err)
 	}
+	//gin.DisableConsoleColor()
+	//f, _ := os.Create("gin.log")
+	////gin.DefaultWriter = io.MultiWriter(f)
+	//gin.DefaultWriter = io.MultiWriter(f, os.Stdout)
+	//type User struct {
+	//	ID     int64  `json:"id" validate:"gt=0"`
+	//	Name   string `json:"name" validate:"required"`
+	//	Gender string `json:"gender" validate:"required,oneof=man woman"`
+	//	Age    uint8  `json:"age" validate:"required,gte=0,lte=130"`
+	//	Email  string `json:"email" validate:"required,email"`
+	//}
+	//
+	//user := &User{
+	//	ID:     1,
+	//	Name:   "frank",
+	//	Gender: "man",
+	//	Age:    180,
+	//	Email:  "gopher@88.com",
+	//}
+	//validate := validator.New()
+	//err := validate.Struct(user)
+	//if err != nil {
+	//	validationErrors := err.(validator.ValidationErrors)
+	//	// output: Key: 'User.Age' Error:Field validation for 'Age' failed on the 'lte' tag
+	//	//fmt.Println(validationErrors)
+	//	zh1 := zh.New()
+	//	uni := ut.New(zh1)
+	//	trans, _ := uni.GetTranslator("zh")
+	//	_ = zh_translations.RegisterDefaultTranslations(validate, trans)
+	//	fmt.Println(validationErrors.Translate(trans))
+	//	return
+	//}
+
 	//url1 := "http://voicecdn.andreader.com/site-990(new)/3467/第327集 压着打\u007F_237e2.mp3"
 	//u, err := url.ParseRequestURI(url1)
 	//fmt.Println(u, err)
